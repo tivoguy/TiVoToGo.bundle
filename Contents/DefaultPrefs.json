@@ -1,0 +1,26 @@
+[
+	{
+		"id": "MAC",
+		"type": "text",
+		"default": "",
+		"label": "TiVo Media Access Key"
+	},
+	{
+		"id": "tivoStaticIP",
+		"type": "text",
+		"default": "",
+		"label": "Forced TiVo IP Address.  Leave blank for auto discovery(Linux Only)."
+	},
+	{
+		"id": "togo",
+		"type": "bool",
+		"label": "Enable To Go Downloads",
+		"default": "false"
+	},
+	{
+		"id": "togodir",
+		"type": "text",
+		"default": "",
+		"label": "TiVo To Go Download Directory"
+	},
+]
