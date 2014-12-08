@@ -453,8 +453,6 @@ def discoverTiVo(oc):
         Log("Found TiVo by Name: %s" % t)
         s = serv.getServiceInfo(REMOTE, t)
         if s:
-            Log("S: =%s" % s.getText())
-            Log("S2: =%s" % s)
             tivoName = t.replace('.' + REMOTE, '')
             addr = socket.inet_ntoa(s.getAddress())
             try:
@@ -506,7 +504,7 @@ def getStatus(rand, execkill=0):
 		oc.add(DirectoryObject(key = Callback(getStatus, rand=str(Util.Random()), execkill = 1), title = 'Kill Current Job...'))
 	else:
 		oc.add(DirectoryObject(key = Callback(getStatus, rand=str(Util.Random())), title = 'Job Queue Empty'))
-        oc.add(DirectoryObject(key = Callback(getStatus, rand=str(Util.Random())), title = 'Refresh'))
+	oc.add(DirectoryObject(key = Callback(getStatus, rand=str(Util.Random())), title = 'Refresh'))
 	return oc
 
 ####################################################################################################
