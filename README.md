@@ -7,14 +7,16 @@ or to download a recorded program from the TiVo.  It requires a Series
 have a high speed connection between itself and the TiVo.
 
 Requires:
-- Linux Plex Server
+- Linux or OSX Plex Server (No Windows or direct NAS support yet)
 - curl
 
 
 To Do:
 - Windows Server Support
-- OSX Server Support
-- Probably build a statically linked tivodecode
+- Probably build a statically linked tivodecode for linux
+- Use the urllib instead of curl
+- Stop using /tmp/cookies.txt
+- Use dynamic sockets and a fixed URL for the live stream video
 
 Installation Instructions
 -------------------------

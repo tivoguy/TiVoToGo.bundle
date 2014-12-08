@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 from signal import *
 from os import kill, getpid, environ, path, unlink, open, close, write, O_RDWR, O_CREAT
+from sys import platform
 from time import sleep
 import urllib2, cookielib
 from lxml import etree
@@ -29,10 +30,6 @@ TIVO_LIST_PATH       = "/TiVoConnect?Command=QueryContainer&Recurse=No&Container
 DownloadThread = None
 GL_CURL_PID = 0
 DL_QUEUE = deque()
-
-#ToDo
-# - Stop using /tmp/cookies
-# - Use dynamic sockets and a fixed URL for live stream video
 
 ####################################################################################################
 def Start():
@@ -194,19 +191,32 @@ def PlayVideo(url):
 
 ####################################################################################################
 def getTvd():
-      # Lack of a PMS api for a local path means we find the local
-      # plugin resources the hard way duplicating some of Plugin.py
-      if 'PLEXLOCALAPPDATA' in environ:
-	      key = 'PLEXLOCALAPPDATA'
-      else:
-	      key = 'LOCALAPPDATA'
-      return path.join(environ[key],
-		       'Plex Media Server',
-		       'Plug-ins',
-		       BUNDLE_NAME,
-		       'Contents',
-		       'Resources',
-		       'tivodecode')
+	# Lack of a PMS api for a local path means we find the local
+	# plugin resources the hard way duplicating some of Plugin.py
+	if platform == "darwin":
+		return path.join(environ['HOME'],
+				 'Library',
+				 'Application Support',
+				 'Plex Media Server',
+				 'Plug-ins',
+				 BUNDLE_NAME,
+				 'Contents',
+				 'Resources',
+				 'tivodecode.osx')
+
+	if 'PLEXLOCALAPPDATA' in environ:
+		key = 'PLEXLOCALAPPDATA'
+	else:
+		key = 'LOCALAPPDATA'
+
+	Log("PLATFORM %s" % platform)
+	return path.join(environ[key],
+			 'Plex Media Server',
+			 'Plug-ins',
+			 BUNDLE_NAME,
+			 'Contents',
+			 'Resources',
+			 'tivodecode')
 
 ####################################################################################################
 
@@ -349,7 +359,10 @@ def dlThread():
 			Log("Downloading: %s From: %s", fileName, url)
 			if "LD_LIBRARY_PATH" in environ.keys():
 				del environ["LD_LIBRARY_PATH"]
-			unlink("/tmp/cookies.txt")
+			try:
+				unlink("/tmp/cookies.txt")
+			except:
+				pass
 			curlp = Popen(["/usr/bin/curl", url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
 			tivodecode = Popen([getTvd(), "-m", getMyMAC(), "-o", fileName, "-"], stdin=curlp.stdout)
 			GL_CURL_PID = curlp.pid
@@ -395,7 +408,9 @@ def downloadLocal(url, title):
 				do_dl = False
 		if do_dl:
 			DL_QUEUE.append((fileName, url))
-			if not DownloadThread:
+			# Race found on OSX setting the thread where it can
+			# exit so fast the global has a data hazard
+			if not DownloadThread or len(DL_QUEUE) == 1:
 				DownloadThread = Thread.Create(dlThread)
 			message = 'Queued download of: %s' % title
 			title2 = 'Download Queued'
@@ -493,8 +508,8 @@ def getStatus(rand, execkill=0):
 	if execkill and GL_CURL_PID:
 		kill(GL_CURL_PID, SIGTERM)
 		sleep(2)
-	if DownloadThread:
-		jobs = copy.deepcopy(DL_QUEUE)
+	jobs = copy.deepcopy(DL_QUEUE)
+	if DownloadThread and jobs:
 		if jobs:
 			(fileName, url) = jobs.popleft()
 			oc.add(DirectoryObject(key = Callback(getStatus, rand=str(Util.Random())), title = 'Running: %s' % fileName))
