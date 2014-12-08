@@ -8,6 +8,8 @@
 	<string>*</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
+        <key>PlexPluginCodePolicy</key>
+        <string>Elevated</string>
 	<key>PlexPluginDebug</key>
 	<array>
 		<string>1</string>

@@ -10,7 +10,9 @@ import thread
 import string
 import re
 import copy
+import socket
 from collections import deque
+import zeroconf
 
 NAME = "TiVo To Go"
 BUNDLE_NAME = "TiVoToGo.bundle"
@@ -410,6 +412,65 @@ def downloadLocal(url, title):
 
 ####################################################################################################
 
+def discoverTiVo(oc):
+
+    class ZCListener:
+        def __init__(self, names):
+            self.names = names
+
+        def removeService(self, server, type, name):
+            self.names.remove(name)
+
+        def addService(self, server, type, name):
+            self.names.append(name)
+
+    REMOTE = '_tivo-videos._tcp.local.'
+    tivo_names = []
+
+    # Get the names of TiVos offering network remote control
+    try:
+        serv = zeroconf.Zeroconf()
+        browser = zeroconf.ServiceBrowser(serv, REMOTE, ZCListener(tivo_names))
+    except Exception, e:
+        Log("Error staring Zero Conf: %s" % e)
+        return oc
+
+    # Give them a second to respond
+    sleep(0.7)
+
+    # For proxied TiVos, remove the original
+    for t in tivo_names[:]:
+        if t.startswith('Proxy('):
+            try:
+                t = t.replace('.' + REMOTE, '')[6:-1] + '.' + REMOTE
+                tivo_names.remove(t)
+            except:
+                pass
+
+    # Now get the addresses -- this is the slow part
+    swversion = re.compile('(\d*.\d*)').findall
+    for t in tivo_names:
+        Log("Found TiVo by Name: %s" % t)
+        s = serv.getServiceInfo(REMOTE, t)
+        if s:
+            Log("S: =%s" % s.getText())
+            Log("S2: =%s" % s)
+            tivoName = t.replace('.' + REMOTE, '')
+            addr = socket.inet_ntoa(s.getAddress())
+            try:
+                port = s.getPort()
+                url_proto = s.getProperties()['protocol']
+                url_path = s.getProperties()['path']
+		url = "%s://%s:%s%s" % (url_proto, addr, port, url_path)
+		Log("Found TiVo URL %s" % url)
+                oc.add(DirectoryObject(key=Callback(getTivoShows, tivoName=tivoName, url=url, tivoip=addr), title=L(tivoName)))
+            except Exception, e:
+                Log("Error finding Tivo: %s" % e)
+                pass
+
+    serv.close()
+    return oc
+
 @route("/video/tivotogo/shows")
 def getTivoShows(tivoName="", url="", tivoip="", showName=""):
 	if showName == "":
@@ -421,7 +482,7 @@ def getTivoShows(tivoName="", url="", tivoip="", showName=""):
 		url = "https://" + tivoip + ":443" + TIVO_LIST_PATH
 	return getTivoShowsByIPURL(tivoip, url, oc)
 
-def discoverTiVo(oc):
+def discoverTiVo_OLD(oc):
 	p1 = Popen(["avahi-browse", "-r", "-t", "_tivo-videos._tcp"], stdout=PIPE)
 	tivolist = p1.communicate()[0]
 
