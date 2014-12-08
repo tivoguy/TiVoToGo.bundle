@@ -471,6 +471,8 @@ def discoverTiVo(oc):
     serv.close()
     return oc
 
+####################################################################################################
+
 @route("/video/tivotogo/shows")
 def getTivoShows(tivoName="", url="", tivoip="", showName=""):
 	if showName == "":
@@ -482,54 +484,8 @@ def getTivoShows(tivoName="", url="", tivoip="", showName=""):
 		url = "https://" + tivoip + ":443" + TIVO_LIST_PATH
 	return getTivoShowsByIPURL(tivoip, url, oc)
 
-def discoverTiVo_OLD(oc):
-	p1 = Popen(["avahi-browse", "-r", "-t", "_tivo-videos._tcp"], stdout=PIPE)
-	tivolist = p1.communicate()[0]
-
-	tivoName = ""
-	addr = ""
-	port = "80"
-	url_proto = ""
-	url_path = ""
-	for line in tivolist.split('\n'):
-		linedata = re.split(r'\s+', line)
-		if len(linedata) > 4 and linedata[0] == "=":
-			if tivoName != "" and addr != "" and url_proto != "" and url_path != "":
-                                url = "%s://%s:%s%s" % (url_proto, addr, port, url_path)
-                                Log("Found TiVo URL %s" % url)
-				oc.add(DirectoryObject(key=Callback(getTivoShows, tivoName=tivoName, url=url, tivoip=addr), title=L(tivoName)))
-			tivoName = linedata[3]
-			addr = ""
-			port = "80"
-			url_proto = ""
-			url_path = ""
-		elif len(linedata) > 2 and linedata[1] == "address":
-			m = re.search("address = \[(.*)\]", line)
-			if m:
-                                addr = m.group(1)
-		elif len(linedata) > 2 and linedata[1] == "port":
-			m = re.search("port = \[(.*)\]", line)
-			if m:
-                                port = m.group(1)
-		elif len(linedata) > 2 and linedata[1] == "txt":
-			m = re.search("txt = \[(.*)\]", line)
-			if m:
-                                txt_vars = m.group(1)
-                                proto = "http"
-                                m = re.search('"protocol=(.*?)"', txt_vars)
-                                if m:
-					url_proto = m.group(1)
-                                m = re.search('"path=(.*?)"', txt_vars)
-                                if m:
-					url_path = m.group(1)
-	# Check for another instance if all the variables are filled out
-	if tivoName != "" and addr != "" and url_proto != "" and url_path != "":
-		url = "%s://%s:%s%s" % (url_proto, addr, port, url_path)
-		Log("Found TiVo URL %s" % url)
-		oc.add(DirectoryObject(key=Callback(getTivoShows, tivoName=tivoName, url=url, tivoip=addr), title=L(tivoName)))
-
-
 ####################################################################################################
+
 @route('/video/tivotogo/getStatus')
 def getStatus(rand, execkill=0):
 	global DownloadThread
