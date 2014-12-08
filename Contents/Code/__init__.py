@@ -206,7 +206,16 @@ def getTvd():
     else:
         key = 'LOCALAPPDATA'
 
-    Log("PLATFORM %s" % platform)
+    if platform == "win32":
+        return path.join(environ[key],
+                         'Plex Media Server',
+                         'Plug-ins',
+                         BUNDLE_NAME,
+                         'Contents',
+                         'Resources',
+                         'win',
+                         'tivodecode.exe')
+    # Linux
     return path.join(environ[key],
                      'Plex Media Server',
                      'Plug-ins',
@@ -214,6 +223,26 @@ def getTvd():
                      'Contents',
                      'Resources',
                      'tivodecode')
+
+####################################################################################################
+def getCurl():
+    if platform != "win32":
+        return "/usr/bin/curl"
+
+    if 'PLEXLOCALAPPDATA' in environ:
+        key = 'PLEXLOCALAPPDATA'
+    else:
+        key = 'LOCALAPPDATA'
+
+    if platform == "win32":
+        return path.join(environ[key],
+                         'Plex Media Server',
+                         'Plug-ins',
+                         BUNDLE_NAME,
+                         'Contents',
+                         'Resources',
+                         'win',
+                         'curl.exe')
 
 ####################################################################################################
 
@@ -225,23 +254,25 @@ class MyVideoHandler(BaseHTTPRequestHandler):
       self.send_header('Content-Type', 'video/mpeg2')
       self.end_headers()
       return
-    except:
-      Log("Got an Error")
+    except Exception, e:
+      Log("do_HEAD error: %s" % e)
 
   def do_GET(self):
     try:
       url = base64.b64decode(string.split(self.path[1:], "/")[0], "-_")
       Log("GET URL: %s" % url)
-      self.send_response(200)
+      if platform != "win32":
+          self.send_response(200)
       self.send_header('Content-type', 'video/mpeg2')
       self.end_headers()
       tvd = getTvd()
+      curl = getCurl()
       Log.Debug("TVD: %s" % tvd)
-      Log.Debug("CMD: %s %s %s %s %s %s %s %s" % ("/usr/bin/curl", url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"))
+      Log.Debug("CMD: %s %s %s %s %s %s %s %s" % (curl, url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"))
       Log.Debug(" PIPED to: %s %s %s %s" % (tvd, "-m", getMyMAC(), "-"))
       if "LD_LIBRARY_PATH" in environ.keys():
         del environ["LD_LIBRARY_PATH"]
-      curlp = Popen(["/usr/bin/curl", url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
+      curlp = Popen([curl, url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
       tivodecode = Popen([tvd, "-m", getMyMAC(), "-"],stdin=curlp.stdout, stdout=PIPE)
       Log("Starting decoder")
       while True:
@@ -350,7 +381,8 @@ def dlThread():
             break
         try:
             tvd = getTvd()
-            Log.Debug("CMD: %s \"%s\" %s %s %s %s %s %s" % ("/usr/bin/curl", url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"))
+            curl = getCurl()
+            Log.Debug("CMD: %s \"%s\" %s %s %s %s %s %s" % (curl, url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"))
             Log.Debug(" PIPED to: \"%s\" %s %s %s \"%s\" %s" % (tvd, "-m", getMyMAC(), "-o", fileName, "-"))
             Log("Downloading: %s From: %s", fileName, url)
             if "LD_LIBRARY_PATH" in environ.keys():
@@ -359,7 +391,7 @@ def dlThread():
                 unlink("/tmp/cookies.txt")
             except:
                 pass
-            curlp = Popen(["/usr/bin/curl", url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
+            curlp = Popen([curl, url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
             tivodecode = Popen([getTvd(), "-m", getMyMAC(), "-o", fileName, "-"], stdin=curlp.stdout)
             GL_CURL_PID = curlp.pid
             tivodecode.wait()
@@ -395,6 +427,9 @@ def downloadLocal(url, title):
     Log("Title: %s" % title)
 
     try:
+        if platform == "win32":
+            valid_chars = list("-_.() %s%s" % (string.ascii_letters, string.digits))
+            title = ''.join(c for c in list(title) if c in valid_chars)
         fileName = path.join(ttgdir, title + ".mpg")
         jobs = copy.deepcopy(DL_QUEUE)
         do_dl = True
@@ -415,7 +450,7 @@ def downloadLocal(url, title):
             title2 = 'Download Queued'
     except Exception, e:
         DownloadThread = None
-        Log("Error starting DL thread: %e" % e)
+        Log("Error starting DL thread: %s" % e)
         message = 'Error starting the Download Thread'
         title2 = 'Download Error'
 
