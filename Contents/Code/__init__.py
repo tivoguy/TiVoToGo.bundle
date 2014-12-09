@@ -145,6 +145,8 @@ def getTivoShowsByIPURL(tivoip, url, dir):
 
     return dir
 
+####################################################################################################
+
 @route('/video/tivotogo/createvideoclipobject', allow_sync = True)
 def CreateVideoClipObject(url, title, thumb, container = False, summary="", duration=14400000, tagline=""):
     Log.Debug("Starting a thread")
@@ -175,8 +177,7 @@ def CreateVideoClipObject(url, title, thumb, container = False, summary="", dura
 
     if container:
         return ObjectContainer(objects = [vco])
-    else:
-        return vco
+
     return vco
 
 ####################################################################################################
@@ -312,46 +313,14 @@ def TivoServerThread(ip, port):
   
 ####################################################################################################
 
-
 def TivoVideo(count, pathNouns):
   Log("Starting a thread")
   thread.start_new_thread(TivoServerThread, ("127.0.0.1", TIVO_PORT))
   Log("Done Starting a thread")
-  #playlist = PLS()
-  #playlist.AppendTrack("http://127.0.0.1:" + str(TIVO_PORT) + "/" + pathNouns[1] + "/" + pathNouns[2], base64.b64decode(pathNouns[3], "-_"))
-  #Plugin.Response["Content-Type"] = playlist.ContentType
-  #return playlist.Content()
   url = "http://127.0.0.1:" + str(TIVO_PORT) + "/" + pathNouns[1] + "/" + pathNouns[2]
-  #Log(str(Plugin.Redirect (url))
   Log("TivoVideo: URL %s" % url)
   return Plugin.Redirect (url)
 
-
-####################################################################################################
-
-def GetVideoURL(url, live = True):
-    if url.startswith('rtmp') and Prefs['rtmp']:
-        Log.Debug('*' * 80)
-        Log.Debug('* url before processing: %s' % url)
-        #if url.find(' ') > -1:
-        #    playpath = GetAttribute(url, 'playpath', '=', ' ')
-        #    swfurl = GetAttribute(url, 'swfurl', '=', ' ')
-        #    pageurl = GetAttribute(url, 'pageurl', '=', ' ')
-        #    url = url[0:url.find(' ')]
-        #    Log.Debug('* url_after: %s' % RTMPVideoURL(url = url, playpath = playpath, swfurl = swfurl, pageurl = pageurl, live = live))
-        #    Log.Debug('*' * 80)
-        #    return RTMPVideoURL(url = url, playpath = playpath, swfurl = swfurl, pageurl = pageurl, live = live)
-        #else:
-        #    Log.Debug('* url_after: %s' % RTMPVideoURL(url = url, live = live))
-        #    Log.Debug('*' * 80)
-        #    return RTMPVideoURL(url = url, live = live)
-        Log.Debug('* url after processing: %s' % RTMPVideoURL(url = url, live = live))
-        Log.Debug('*' * 80)
-        return RTMPVideoURL(url = url, live = live)
-    elif url.startswith('mms') and Prefs['mms']:
-        return WindowsMediaVideoURL(url = url)
-    else:
-        return HTTPLiveStreamURL(url = url)
 
 ####################################################################################################
 
