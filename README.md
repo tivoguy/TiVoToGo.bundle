@@ -6,6 +6,17 @@ or to download a recorded program from the TiVo.  It requires a Series
 2 or newer TiVo with an ethernet connection.  The Plex Server needs to
 have a high speed connection between itself and the TiVo.
 
+Q: What would I use this channel for?
+A: You browse to a show on your TiVo and watch it without downloading
+   it to the Plex Server?
+
+Q: Can I download something from the TiVo it to the Plex Server using
+   this channel?
+
+A: Yes!  If you enable the TiVoToGo service, and fill in a folder
+   name, the channel will have extra entries to allow you to download
+   the content.
+
 Requires:
 - Linux, OSX or Windows Plex Server (No direct NAS support)
 - On Linux and OSX requires curl be installed
