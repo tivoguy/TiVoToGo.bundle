@@ -1,7 +1,8 @@
 from subprocess import Popen, PIPE
 from signal import *
 from os import kill, getpid, environ, path, unlink, open, close, write, O_RDWR, O_CREAT
-from sys import platform
+import sys
+import platform
 from time import sleep
 import urllib2, cookielib
 from lxml import etree
@@ -191,7 +192,7 @@ def PlayVideo(url):
 def getTvd():
     # Lack of a PMS api for a local path means we find the local
     # plugin resources the hard way duplicating some of Plugin.py
-    if platform == "darwin":
+    if sys.platform == "darwin":
         return path.join(environ['HOME'],
                          'Library',
                          'Application Support',
@@ -207,7 +208,7 @@ def getTvd():
     else:
         key = 'LOCALAPPDATA'
 
-    if platform == "win32":
+    if sys.platform == "win32":
         return path.join(environ[key],
                          'Plex Media Server',
                          'Plug-ins',
@@ -216,7 +217,16 @@ def getTvd():
                          'Resources',
                          'win',
                          'tivodecode.exe')
-    # Linux
+    # Linux 64
+    if platform.architecture()[0] == "64bit":
+        return path.join(environ[key],
+                         'Plex Media Server',
+                         'Plug-ins',
+                         BUNDLE_NAME,
+                         'Contents',
+                         'Resources',
+                         'tivodecode.x86_64')
+    # Linux 32
     return path.join(environ[key],
                      'Plex Media Server',
                      'Plug-ins',
@@ -227,7 +237,7 @@ def getTvd():
 
 ####################################################################################################
 def getCurl():
-    if platform != "win32":
+    if sys.platform != "win32":
         return "/usr/bin/curl"
 
     if 'PLEXLOCALAPPDATA' in environ:
@@ -235,7 +245,7 @@ def getCurl():
     else:
         key = 'LOCALAPPDATA'
 
-    if platform == "win32":
+    if sys.platform == "win32":
         return path.join(environ[key],
                          'Plex Media Server',
                          'Plug-ins',
@@ -262,7 +272,7 @@ class MyVideoHandler(BaseHTTPRequestHandler):
     try:
       url = base64.b64decode(string.split(self.path[1:], "/")[0], "-_")
       Log("GET URL: %s" % url)
-      if platform != "win32":
+      if sys.platform != "win32":
           self.send_response(200)
       self.send_header('Content-type', 'video/mpeg2')
       self.end_headers()
@@ -396,7 +406,7 @@ def downloadLocal(url, title):
     Log("Title: %s" % title)
 
     try:
-        if platform == "win32":
+        if sys.platform == "win32":
             valid_chars = list("-_.() %s%s" % (string.ascii_letters, string.digits))
             title = ''.join(c for c in list(title) if c in valid_chars)
         fileName = path.join(ttgdir, title + ".mpg")
