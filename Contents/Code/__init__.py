@@ -32,6 +32,10 @@ DownloadThread = None
 GL_CURL_PID = 0
 DL_QUEUE = deque()
 
+# For the UpdateTTGFolder function
+HOST = 'http://localhost:32400'
+SECTIONS = '%s/library/sections/'
+
 ####################################################################################################
 def Start():
     ObjectContainer.title1 = NAME
@@ -347,6 +351,20 @@ def getShowContainer(url, show_url, title, summary, thumb, tagline, duration):
     return oc
 
 ####################################################################################################
+def UpdateTTGFolder():
+    try:
+        sections = XML.ElementFromURL(SECTIONS % (HOST), cacheTime=0).xpath('//Directory')
+        togoupdatedir = Prefs['togoupdatedir'] or "TiVo To Go"
+        for section in sections:
+            key = section.get('key')
+            title = section.get('title')
+            if title == togoupdatedir:
+                Log.Info('Updating Library #%s - %s' % (key, title))
+                HTTP.Request(SECTIONS % (HOST) + key + '/refresh', cacheTime=0).content
+    except Exception, e:
+        Log("Error Updating TTG Folder: %s" % e)
+
+####################################################################################################
 
 def dlThread():
     global GL_CURL_PID
@@ -373,11 +391,16 @@ def dlThread():
             curlp = Popen([curl, url, "--digest", "-s", "-u", "tivo:"+getMyMAC(), "-c", "/tmp/cookies.txt"], stdout=PIPE)
             tivodecode = Popen([getTvd(), "-m", getMyMAC(), "-o", fileName, "-"], stdin=curlp.stdout)
             GL_CURL_PID = curlp.pid
+            # Wait two seconds for it to get going and then issue a update for the TiVo folder
+            sleep(2)
+            UpdateTTGFolder()
             tivodecode.wait()
             kill(curlp.pid, SIGTERM)
             sleep(1)
         except Exception, e:
             Log("Error in Download Thread: %s" % e)
+        # Issue a refresh to the TTG folder
+        UpdateTTGFolder()
         DL_QUEUE.popleft()
         Log("Download complete: %s" % fileName)
         GL_CURL_PID = 0

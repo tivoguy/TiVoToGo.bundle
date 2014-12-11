@@ -23,4 +23,10 @@
 		"default": "",
 		"label": "TiVo To Go Download Directory"
 	},
+	{
+		"id": "togoupdatedir",
+		"type": "text",
+		"default": "",
+		"label": "Plex Library name to update after initiating a download. (Default if blank: TiVo To Go)"
+	},
 ]
