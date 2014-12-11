@@ -29,4 +29,10 @@
 		"default": "",
 		"label": "Plex Library name to update after initiating a download. (Default if blank: TiVo To Go)"
 	},
+	{
+		"id": "browseblacklist",
+		"type": "text",
+		"default": "",
+		"label": "Comma separated list of TiVo names to ignore"
+	},
 ]

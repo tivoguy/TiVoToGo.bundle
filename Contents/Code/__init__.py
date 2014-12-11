@@ -296,8 +296,6 @@ class MyVideoHandler(BaseHTTPRequestHandler):
               break
           self.wfile.write(data)
 
-      #tivodecode.communicate()
-
     except Exception, e:
       Log("Unexpected error: %s" % e)
 
@@ -486,8 +484,12 @@ def discoverTiVo(oc):
     # Give them a second to respond
     sleep(0.7)
 
-    # For proxied TiVos, remove the original
+    # For proxied TiVos, remove the original and any black listed tivos
+    browseblacklist = (Prefs['browseblacklist'] or "").split(",")
     for t in tivo_names[:]:
+        if t.split(".")[0] in browseblacklist:
+            tivo_names.remove(t)
+            continue
         if t.startswith('Proxy('):
             try:
                 t = t.replace('.' + REMOTE, '')[6:-1] + '.' + REMOTE
