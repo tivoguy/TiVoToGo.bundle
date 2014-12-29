@@ -162,7 +162,6 @@ def CreateVideoClipObject(url, title, thumb, container = False, summary="", dura
                        tagline = tagline,
                        summary = summary, container = True,
                        duration = duration),
-        url = url,
         title = title,
         thumb = thumb,
         summary = summary,
