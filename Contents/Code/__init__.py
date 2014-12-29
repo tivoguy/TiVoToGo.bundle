@@ -152,7 +152,7 @@ def getTivoShowsByIPURL(tivoip, url, dir):
 
 ####################################################################################################
 
-@route('/video/tivotogo/createvideoclipobject', allow_sync = True)
+@route('/video/tivotogo/createvideoclipobject')
 def CreateVideoClipObject(url, title, thumb, container = False, summary="", duration=14400000, tagline=""):
     Log.Debug("Starting a thread")
     thread.start_new_thread(TivoServerThread, ("127.0.0.1", TIVO_PORT))
