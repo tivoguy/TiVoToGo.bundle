@@ -336,7 +336,7 @@ def TivoVideo(count, pathNouns):
 
 ####################################################################################################
 
-@route("/video/tivotogo/showconatiner")
+@route("/video/tivotogo/showcontainer")
 def getShowContainer(url, show_url, title, summary, thumb, tagline, duration):
     oc = ObjectContainer(title2=L(title))
     oc.add(CreateVideoClipObject(url = url,
