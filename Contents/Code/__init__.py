@@ -152,7 +152,7 @@ def getTivoShowsByIPURL(tivoip, url, dir):
 
 ####################################################################################################
 
-@route('/video/tivotogo/createvideoclipobject')
+@route('/video/tivotogo/createvideoclipobject', container=bool, duration=int)
 def CreateVideoClipObject(url, title, thumb, container = False, summary="", duration=14400000, tagline=""):
     Log.Debug("Starting a thread")
     thread.start_new_thread(TivoServerThread, ("127.0.0.1", TIVO_PORT))
@@ -160,7 +160,8 @@ def CreateVideoClipObject(url, title, thumb, container = False, summary="", dura
     vco = VideoClipObject(
         key = Callback(CreateVideoClipObject, url = url, title = title, thumb = thumb,
                        tagline = tagline,
-                       summary = summary, container = True,
+                       summary = summary,
+                       container = True,
                        duration = duration),
         rating_key = url,
         title = title,
