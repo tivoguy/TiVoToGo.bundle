@@ -172,25 +172,18 @@ def CreateVideoClipObject(url, title, thumb, container = False, summary="", dura
             MediaObject(
                 parts = [
                     PartObject(
-                        key = Callback(PlayVideo, url=url)
-                        ),
-                    ],
+                        key = url
+                    )
+                ],
                 optimized_for_streaming = True
-                )
-            ]
-        )
+            )
+        ]
+    )
 
     if container:
         return ObjectContainer(objects = [vco])
 
     return vco
-
-####################################################################################################
-
-@indirect
-def PlayVideo(url):
-    Log("Return PlayVideo: %s" % url)
-    return IndirectResponse(VideoClipObject, key=url)
 
 ####################################################################################################
 def getTvd():
