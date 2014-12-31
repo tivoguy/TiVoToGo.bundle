@@ -9,7 +9,7 @@ have a high speed connection between itself and the TiVo.
 Q: What would I use this channel for?
 
 A: You browse to a show on your TiVo and watch it without downloading
-   it to the Plex Server?
+   it to the Plex Server.
 
 Q: Can I download something from the TiVo it to the Plex Server using
    this channel?
@@ -33,6 +33,8 @@ To Do:
 - Use the urllib instead of curl
 - Stop using /tmp/cookies.txt
 - Use dynamic sockets and a fixed URL for the live stream video
+- If the community support for the MPEG-TS improves, add MPEG-TS
+  support, for now it only works with MPEG-PS
 
 Installation Instructions
 -------------------------
